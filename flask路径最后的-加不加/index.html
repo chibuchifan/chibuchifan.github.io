@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.3.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.3.0">
+  <link rel="mask-icon" href="/images/logo.svg?v=7.3.0" color="#222">
+
+<link rel="stylesheet" href="/css/main.css?v=7.3.0">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.7.0">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '7.3.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    }
+  };
+</script>
+
+  <meta name="description" content="flask路由最后是否需要加上斜杠`/`">
+<meta name="keywords" content="flask源码,flask路由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flask路径最后的&#x2F;加不加">
+<meta property="og:url" content="https://luren.pub/flask路径最后的-加不加/index.html">
+<meta property="og:site_name" content="吃饭不喝汤">
+<meta property="og:description" content="flask路由最后是否需要加上斜杠`/`">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-09T01:01:37.631Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="flask路径最后的&#x2F;加不加">
+<meta name="twitter:description" content="flask路由最后是否需要加上斜杠`/`">
+  <link rel="canonical" href="https://luren.pub/flask路径最后的-加不加/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>flask路径最后的/加不加 | 吃饭不喝汤</title>
+  <meta name="generator" content="Hexo 3.9.0">
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">吃饭不喝汤</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">饿了就吃饭渴了就喝水</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+  </ul>
+
+    
+
+</nav>
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content page-post-detail">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://luren.pub/flask路径最后的-加不加/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="饿了就吃饭">
+      <meta itemprop="description" content="妄言妄语当不得真,疯言疯语不足为信">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="吃饭不喝汤">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">flask路径最后的/加不加
+
+          
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-20 14:09:06" itemprop="dateCreated datePublished" datetime="2019-05-20T14:09:06+08:00">2019-05-20</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-08-09 09:01:37" itemprop="dateModified" datetime="2019-08-09T09:01:37+08:00">2019-08-09</time>
+              </span>
+            
+          
+
+          
+            <div class="post-description">flask路由最后是否需要加上斜杠`/`</div>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="先下结论"><a href="#先下结论" class="headerlink" title="先下结论"></a>先下结论</h2><p>先说结论, 一般来说, 在项目初始就定好规矩, 在<code>restful</code>中, 将所有资源都看成文件, 那么统一成不加<code>/</code>的好, 然后访问加了斜杠的路径会报404, 加不加看心情但是一个项目中最好统一.</p>
+<p>因为在flask中如果路由是<code>/haha/</code>, 那么访问<code>/haha</code>会被重定向到<code>/haha/</code>下</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">qq@zz:~/<span class="built_in">test</span>$ curl -I  http://127.0.0.1:3000/users/kaka</span><br><span class="line">HTTP/1.0 308 PERMANENT REDIRECT</span><br><span class="line">Content-Type: text/html; charset=utf-8</span><br><span class="line">Content-Length: 273</span><br><span class="line">Location: http://127.0.0.1:3000/users/kaka/</span><br><span class="line">Server: Werkzeug/0.15.4 Python/3.6.6</span><br><span class="line">Date: Mon, 20 May 2019 07:39:15 GMT</span><br></pre></td></tr></table></figure>
+<p>但是定义一个<code>/haha</code>的路径, 然后访问<code>/haha/</code>会报404:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">qq@zz:~/<span class="built_in">test</span>$ curl -I  http://127.0.0.1:3000/users/kaka/</span><br><span class="line">HTTP/1.0 404 NOT FOUND</span><br><span class="line">Content-Type: text/html</span><br><span class="line">Content-Length: 232</span><br><span class="line">Server: Werkzeug/0.15.4 Python/3.6.6</span><br><span class="line">Date: Mon, 20 May 2019 07:53:04 GMT</span><br></pre></td></tr></table></figure>
+<h2 id="举例子"><a href="#举例子" class="headerlink" title="举例子"></a>举例子</h2><p>在flask路由的时候发现一个很好玩的事情, 代码如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, jsonify</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/users/kaka')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">update_user</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> jsonify(a=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/users/kaka/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">update_userss</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> jsonify(a=<span class="number">11</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run(debug=<span class="keyword">True</span>, port=<span class="number">3000</span>)</span><br></pre></td></tr></table></figure>
+<p>然后调用:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">qq@zz:~$ curl http://127.0.0.1:3000/users/kaka/</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"a"</span>: 11</span><br><span class="line">&#125;</span><br><span class="line">qq@zz:~$ curl http://127.0.0.1:3000/users/kaka</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"a"</span>: 1</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># 这是因为werkzug中所有的路由都存在一个列表中, 所以涉及到匹配的先后顺序</span></span><br></pre></td></tr></table></figure>
+<p>然后将路径<code>/users/kaka</code>最后的斜杠顺序换过来:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, jsonify</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/users/kaka/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">update_user</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> jsonify(a=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/users/kaka')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">update_userss</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> jsonify(a=<span class="number">11</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run(debug=<span class="keyword">True</span>, port=<span class="number">3000</span>)</span><br></pre></td></tr></table></figure>
+<p>返回结果:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">qq@zz:~$ curl http://127.0.0.1:3000/users/kaka/</span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">"a"</span>: 1</span><br><span class="line">&#125;</span><br><span class="line">qq@zz:~$ curl http://127.0.0.1:3000/users/kaka</span><br><span class="line">&lt;!DOCTYPE HTML PUBLIC <span class="string">"-//W3C//DTD HTML 3.2 Final//EN"</span>&gt;</span><br><span class="line">&lt;title&gt;Redirecting...&lt;/title&gt;</span><br><span class="line">&lt;h1&gt;Redirecting...&lt;/h1&gt;</span><br><span class="line">&lt;p&gt;You should be redirected automatically to target URL: &lt;a href=<span class="string">"http://127.0.0.1:3000/users/kaka/"</span>&gt;http://127.0.0.1:3000/users/kaka/&lt;/a&gt;.  If not click the link.</span><br></pre></td></tr></table></figure>
+<h2 id="找解决"><a href="#找解决" class="headerlink" title="找解决"></a>找解决</h2><p>在<code>werkzeug/routing.py</code>中:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">    - you receive a `RequestRedirect` exception with a `new_url`</span><br><span class="line">      attribute.  This exception is used to notify you about a request</span><br><span class="line">      Werkzeug requests from your WSGI application.  This is <span class="keyword">for</span> example the</span><br><span class="line">      <span class="keyword">case</span> <span class="keyword">if</span> you request ``/foo`` although the correct URL is ``/foo/``</span><br><span class="line">      You can use the `RequestRedirect` instance as response-like object</span><br><span class="line">      similar to all other subclasses of `HTTPException`.</span><br><span class="line"></span><br><span class="line">`string`</span><br><span class="line">    Rule strings basically are just normal URL paths with placeholders <span class="keyword">in</span></span><br><span class="line">    the format ``&lt;converter(arguments):name&gt;`` <span class="built_in">where</span> the converter and the</span><br><span class="line">    arguments are optional.  If no converter is defined the `default`</span><br><span class="line">    converter is used <span class="built_in">which</span> means `string` <span class="keyword">in</span> the normal configuration.</span><br><span class="line"></span><br><span class="line">    URL rules that end with a slash are branch URLs, others are leaves.</span><br><span class="line">    If you have `strict_slashes` enabled (<span class="built_in">which</span> is the default), all</span><br><span class="line">    branch URLs that are matched without a trailing slash will trigger a</span><br><span class="line">    redirect to the same URL with the missing slash appended.</span><br></pre></td></tr></table></figure>
+<p>追溯到第一使用地点:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Rule</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">match</span><span class="params">(self, **kwargs)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">            self.strict_slashes</span><br><span class="line">            <span class="keyword">and</span> <span class="keyword">not</span> self.is_leaf</span><br><span class="line">            <span class="keyword">and</span> <span class="keyword">not</span> groups.pop(<span class="string">"__suffix__"</span>)</span><br><span class="line">            <span class="keyword">and</span> (</span><br><span class="line">                method <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> self.methods <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> method <span class="keyword">in</span> self.methods</span><br><span class="line">                )</span><br><span class="line">            ):</span><br><span class="line">                <span class="keyword">raise</span> RequestSlash()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MapAdapter</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">match</span><span class="params">(self, path_info=None, method=None, return_rule=False, query_args=None)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> rule <span class="keyword">in</span> self.map._rules:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            rv = rule.match(path, method)</span><br><span class="line">        <span class="keyword">except</span> RequestSlash:</span><br><span class="line">            <span class="keyword">raise</span> RequestRedirect(</span><br><span class="line">                self.make_redirect_url(</span><br><span class="line">                    url_quote(path_info, self.map.charset, safe=<span class="string">"/:|+"</span>) +<span class="string">"/"</span>,</span><br><span class="line">                    query_args,</span><br><span class="line">                )</span><br><span class="line">            )</span><br><span class="line">        <span class="keyword">except</span> RequestAliasRedirect <span class="keyword">as</span> e:</span><br><span class="line">            <span class="keyword">raise</span> RequestRedirect(</span><br><span class="line">                self.make_alias_redirect_url(</span><br><span class="line">                        path, rule.endpoint, e.matched_values, method, query_args</span><br><span class="line">                )</span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Map</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(strict_slashes=True,</span></span></span><br><span class="line"><span class="function"><span class="params">                redirect_defaults=True,)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<h2 id="小总结"><a href="#小总结" class="headerlink" title="小总结"></a>小总结</h2><p>最后为什么一个匹配的上一个匹配不上, 这涉及到<code>werkzeug</code>的路由建立顺序和匹配顺序, 在另一篇路由的实现和查找中有提到.</p>
+<h3 id="番外–linux的普通文件和目录文件"><a href="#番外–linux的普通文件和目录文件" class="headerlink" title="番外–linux的普通文件和目录文件"></a>番外–linux的普通文件和目录文件</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">qq@zz:~/<span class="built_in">test</span>$ touch haha</span><br><span class="line">qq@zz:~/<span class="built_in">test</span>$ mkdir kaka</span><br><span class="line">qq@zz:~/<span class="built_in">test</span>$ <span class="built_in">stat</span> haha</span><br><span class="line">  文件：<span class="string">'haha'</span></span><br><span class="line">  大小：0         	块：0          IO 块：4096   普通空文件</span><br><span class="line">设备：806h/2054d	Inode：1058541     硬链接：1</span><br><span class="line">权限：(0664/-rw-rw-r--)  Uid：( 1000/      qq)   Gid：( 1000/      qq)</span><br><span class="line">最近访问：2019-05-20 15:34:08.849485139 +0800</span><br><span class="line">最近更改：2019-05-20 15:34:08.849485139 +0800</span><br><span class="line">最近改动：2019-05-20 15:34:08.849485139 +0800</span><br><span class="line">创建时间：-</span><br><span class="line">qq@zz:~/<span class="built_in">test</span>$ <span class="built_in">stat</span> kaka</span><br><span class="line">  文件：<span class="string">'kaka'</span></span><br><span class="line">  大小：4096      	块：8          IO 块：4096   目录</span><br><span class="line">设备：806h/2054d	Inode：1061448     硬链接：2</span><br><span class="line">权限：(0775/drwxrwxr-x)  Uid：( 1000/      qq)   Gid：( 1000/      qq)</span><br><span class="line">最近访问：2019-05-20 15:34:12.837483383 +0800</span><br><span class="line">最近更改：2019-05-20 15:34:12.837483383 +0800</span><br><span class="line">最近改动：2019-05-20 15:34:12.837483383 +0800</span><br><span class="line">创建时间：-</span><br><span class="line">qq@zz:~/<span class="built_in">test</span>$ ll</span><br><span class="line">总用量 12</span><br><span class="line">drwxrwxr-x  3 qq qq 4096 5月  20 15:34 ./</span><br><span class="line">drwxr-xr-x 80 qq qq 4096 5月  20 15:02 ../</span><br><span class="line">-rw-rw-r--  1 qq qq    0 5月  20 15:34 haha</span><br><span class="line">drwxrwxr-x  2 qq qq 4096 5月  20 15:34 kaka/</span><br></pre></td></tr></table></figure>
+<p>在linux下面, 普通文件结尾为<code>filename</code>, 目录文件结尾是<code>dirname/</code></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/flask源码/" rel="tag"># flask源码</a>
+            
+              <a href="/tags/flask路由/" rel="tag"># flask路由</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/python有趣的函数/" rel="next" title="python有趣的函数">
+                  <i class="fa fa-chevron-left"></i> python有趣的函数
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/flask路由梳理/" rel="prev" title="flask路由梳理">
+                  flask路由梳理 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">饿了就吃饭</p>
+  <div class="site-description motion-element" itemprop="description">妄言妄语当不得真,疯言疯语不足为信</div>
+</div>
+  <nav class="site-state motion-element">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+        
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span>
+        
+      </div>
+    
+  </nav>
+
+
+
+
+        </div>
+      </div>
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#先下结论"><span class="nav-number">1.</span> <span class="nav-text">先下结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#举例子"><span class="nav-number">2.</span> <span class="nav-text">举例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#找解决"><span class="nav-number">3.</span> <span class="nav-text">找解决</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小总结"><span class="nav-number">4.</span> <span class="nav-text">小总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#番外–linux的普通文件和目录文件"><span class="nav-number">4.1.</span> <span class="nav-text">番外–linux的普通文件和目录文件</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">饿了就吃饭</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v7.3.0</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        <span>0%</span>
+      </div>
+
+    
+
+  </div>
+
+  
+  <script src="/lib/jquery/index.js?v=3.4.1"></script>
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+<script src="/js/utils.js?v=7.3.0"></script><script src="/js/motion.js?v=7.3.0"></script>
+<script src="/js/schemes/muse.js?v=7.3.0"></script>
+<script src="/js/next-boot.js?v=7.3.0"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+  
+  <script src="/js/scrollspy.js?v=7.3.0"></script><script src="/js/post-details.js?v=7.3.0"></script>
+
+
+</body>
+</html>
