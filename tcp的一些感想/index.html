@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="妄言妄语当不得真,疯言疯语不足为信"><title>tcp的一些感想 | 吃饭不喝汤</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">tcp的一些感想</h1><a id="logo" href="/.">吃饭不喝汤</a><p class="description">饿了就吃饭渴了就喝水</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">tcp的一些感想</h1><div class="post-meta">Sep 15, 2018</div><div class="clear"><div class="toc-article" id="toc"><div class="toc-title">文章目录</div><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">1.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三次握手和四次挥手"><span class="toc-number">2.</span> <span class="toc-text">三次握手和四次挥手</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#三次握手"><span class="toc-number">2.1.</span> <span class="toc-text">三次握手</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#四次挥手"><span class="toc-number">2.2.</span> <span class="toc-text">四次挥手</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#差错控制机制"><span class="toc-number">3.</span> <span class="toc-text">差错控制机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#分段"><span class="toc-number">3.1.</span> <span class="toc-text">分段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#确认应答"><span class="toc-number">3.2.</span> <span class="toc-text">确认应答</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#重传机制"><span class="toc-number">3.3.</span> <span class="toc-text">重传机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tcp的拥塞机制"><span class="toc-number">4.</span> <span class="toc-text">tcp的拥塞机制</span></a></li></ol></div></div><div class="post-content"><p>在tcp协议中, 我们考虑下面几个问题:</p>
+<ul>
+<li>消息可以发送</li>
+<li>消息能解析出正确的发送数据</li>
+<li>消息确认到达</li>
+<li>尽量的压榨性能</li>
+</ul>
+<p>按照惯例, 先放总结</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li><p>ack机制</p>
+<ul>
+<li><p>这个类似的有kafka的消息确认机制, rabbitmq的确认机制.</p>
+</li>
+<li><p>变种的有心跳监测机制</p>
+</li>
+</ul>
+</li>
+<li><p>本地buffer批量发送</p>
+<ul>
+<li><p>kafka本地先buffer然后批量发送</p>
+</li>
+<li><p>mysql设置buffer区域, 先写入buffer然后批量刷盘, 刷盘的触发机制有buffer满或者达到超时时间.</p>
+</li>
+</ul>
+</li>
+<li><p>异常处理</p>
+<ul>
+<li>tcp设置urg=1告诉server这条消息优先级比较高, 先处理. </li>
+</ul>
+</li>
+<li><p>数据校验</p>
+<ul>
+<li>将数据和校验位一起发送, 然后server确认数据是否正确, 类似于https的连接</li>
+</ul>
+</li>
+<li><p>序列号</p>
+<ul>
+<li>用有序数组来确认顺序还是添加序号确认顺序, 这是个问题.</li>
+</ul>
+</li>
+<li><p>随机序列号</p>
+<ul>
+<li>初始给出一个随机序列号防止被黑, 跟https中建立连接的过程有点关系</li>
+</ul>
+</li>
+</ol>
+<h2 id="三次握手和四次挥手"><a href="#三次握手和四次挥手" class="headerlink" title="三次握手和四次挥手"></a>三次握手和四次挥手</h2><h3 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h3><p>在tcp中client和server是平等的, 都接收和发送消息, 所以必须要确认都能收都能接</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">c: 我能发, 你能收么, 你看我打算从x这个初始序列号给你发消息</span><br><span class="line">s: 我能收, 你看我也能发, 你看我知道你下次发的序列号开始是x+1, 我给你发消息从y开始</span><br><span class="line">c: 我也能收, 我知道你打算从y+1开始给我发消息</span><br></pre></td></tr></table></figure>
+<p>感觉这里之所以x+1是为了编码实现的方便, 跟虚拟内存一样.</p>
+<h3 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">c: 我不打算发了, 我发的最后一个是<span class="variable">$u</span>$</span><br><span class="line">s :哦, 我收到了, 给你确认是u+1</span><br><span class="line">s: 我最后给你确认你发的是u+1, 我最后自己发的是v</span><br><span class="line">c: 哦, 我收到你最后发的v+1了, 告辞</span><br></pre></td></tr></table></figure>
+<h2 id="差错控制机制"><a href="#差错控制机制" class="headerlink" title="差错控制机制"></a>差错控制机制</h2><h3 id="分段"><a href="#分段" class="headerlink" title="分段"></a>分段</h3><ul>
+<li><p>由于受到网络最大传输单元的限制, tcp不可能一次就将所有的消息发送完成, 而需要将消息分段发出, tcp发送数据的基本单位是段.</p>
+</li>
+<li><p>tcp每段数据开头都带有一个标示该段数据的32位序号, 这里类似于数组的地址就是数组开头第一个元素的地址一样</p>
+</li>
+</ul>
+<h3 id="确认应答"><a href="#确认应答" class="headerlink" title="确认应答"></a>确认应答</h3><ul>
+<li><p>确认应答采用滑动窗口的方式</p>
+<ul>
+<li><p>发送端的发送窗口大小 = min[拥塞窗口, 接收端公告的接收窗口]</p>
+</li>
+<li><p>client在发送完窗口大小的数据后, 等待接收端的确认消息.</p>
+</li>
+</ul>
+</li>
+<li><p>确认过程</p>
+<ul>
+<li>server收到消息后可以逐个确认也可以批量确认, 然后给出确认序号是最后一个发送序号+1, 也就是告诉client下次接收消息的开始序号</li>
+<li>一般来说, 确认消息会捎带在server发送的数据中, 这样可以提高网络传输的效率.</li>
+<li>ack返回有两个条件, 一个是跟着server的数据一起返回, 另一个是超时, 这个超时时间不能大于client重传定时器的超时时间</li>
+<li>todo<ul>
+<li>这里类似于本地一个buffer, 然后buffer满了就发送, 或者等待超时就发送</li>
+<li>kafka先将消息buffer到本地,然后一起发送,这样可以提高效率.// 需不需要考虑本地消息丢失的问题</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>错序确认</p>
+<ul>
+<li>如果因为网络抖动或者什么原因, 4001消息的确认在2001的前面, 那么server会理科向client发送确认应答, ack的value是正确的确认序号+1, 也就是2001. 这样就会产生很多2001的ack, client根据这个ack确认是否需要重发. server会将这些错序的消息buffer到本地, 直到收到正确的</li>
+</ul>
+</li>
+<li><p>消息丢失</p>
+<ul>
+<li>消息丢失的话, 后面的消息会一直重复确认, 逐渐将重传定时器溢出, 然后重发</li>
+</ul>
+</li>
+</ul>
+<p><strong>所以乱序和丢失的区别在于先是乱序的那个序号到达还是client的重传定时器溢出????</strong></p>
+<h3 id="重传机制"><a href="#重传机制" class="headerlink" title="重传机制"></a>重传机制</h3><ul>
+<li>client发送一个tcp报文, 会将这个报文暂存到缓冲区, 并设置一个buffer超时时间, 过了这个时间如果没有收到ack的话就会重传.<ul>
+<li>问题的关键在于如何设置这个超时时间</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>client收到了server的多个重复的ack, 默认是3个, 那么就会重新发送消息</li>
+</ul>
+<ul>
+<li>重传的话到底发送哪条消息?<ul>
+<li>2的话只发送丢的那条就ok</li>
+<li>1是因为超时或者网络不稳定什么的, 发送丢的那条和后面的全部消息</li>
+</ul>
+</li>
+</ul>
+<h2 id="tcp的拥塞机制"><a href="#tcp的拥塞机制" class="headerlink" title="tcp的拥塞机制"></a>tcp的拥塞机制</h2><p>慢启动</p>
+<p>重传定时器溢出的时候向下调整</p>
+<p>连续接收到多个重复确认应答的时候向下调整</p>
+</div><div class="tags"><a href="/tags/消息队列/">消息队列</a><a href="/tags/tcp协议/">tcp协议</a></div><div class="post-nav"><a class="pre" href="/flask处理http请求的数据/">flask处理http请求的数据</a><a class="next" href="/ps/">ps操作的一些记录</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="search-form"><input id="local-search-input" placeholder="Search" type="text" name="q" results="0"><div id="local-search-result"></div></div></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/脚本/" style="font-size: 15px;">脚本</a> <a href="/tags/flask源码/" style="font-size: 15px;">flask源码</a> <a href="/tags/flask/" style="font-size: 15px;">flask</a> <a href="/tags/http/" style="font-size: 15px;">http</a> <a href="/tags/路由寻址/" style="font-size: 15px;">路由寻址</a> <a href="/tags/源码解读/" style="font-size: 15px;">源码解读</a> <a href="/tags/k8s/" style="font-size: 15px;">k8s</a> <a href="/tags/linux/" style="font-size: 15px;">linux</a> <a href="/tags/flask路由/" style="font-size: 15px;">flask路由</a> <a href="/tags/redis/" style="font-size: 15px;">redis</a> <a href="/tags/python/" style="font-size: 15px;">python</a> <a href="/tags/常用函数/" style="font-size: 15px;">常用函数</a> <a href="/tags/开发环境配置/" style="font-size: 15px;">开发环境配置</a> <a href="/tags/消息队列/" style="font-size: 15px;">消息队列</a> <a href="/tags/tcp协议/" style="font-size: 15px;">tcp协议</a> <a href="/tags/算法/" style="font-size: 15px;">算法</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/上传文件中中文名称的处理和python实现/">flask上传文件中文名称的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/redis基本操作/">redis基本操作</a></li><li class="post-list-item"><a class="post-list-link" href="/redis对象/">redis对象</a></li><li class="post-list-item"><a class="post-list-link" href="/redis数据结构/">redis数据结构</a></li><li class="post-list-item"><a class="post-list-link" href="/redis高可用/">redis高可用</a></li><li class="post-list-item"><a class="post-list-link" href="/kubectl-delete-pods/">kubectl delete pods</a></li><li class="post-list-item"><a class="post-list-link" href="/ubuntu添加桌面侧边栏/">ubuntu添加桌面侧边栏</a></li><li class="post-list-item"><a class="post-list-link" href="/docsify创建markdown类型的文档/">docsify创建markdown类型的文档</a></li><li class="post-list-item"><a class="post-list-link" href="/flask路由梳理/">flask路由梳理</a></li><li class="post-list-item"><a class="post-list-link" href="/flask路径最后的-加不加/">flask路径最后的/加不加</a></li></ul></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2019 <a href="/." rel="nofollow">吃饭不喝汤.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/search.js?v=0.0.0"></script><script>var search_path = 'search.xml';
+if (search_path.length == 0) {
+   search_path = 'search.xml';
+}
+var path = '/' + search_path;
+searchFunc(path, 'local-search-input', 'local-search-result');
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
