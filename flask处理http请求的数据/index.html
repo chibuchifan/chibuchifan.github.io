@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="flask,http,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="跟着flask走一遍http向后台发送数据的解析过程">
+<meta name="keywords" content="flask,http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="flask处理http请求的数据">
+<meta property="og:url" content="https://luren.pub/flask处理http请求的数据/index.html">
+<meta property="og:site_name" content="吃饭不喝汤">
+<meta property="og:description" content="跟着flask走一遍http向后台发送数据的解析过程">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-09T01:01:37.630Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="flask处理http请求的数据">
+<meta name="twitter:description" content="跟着flask走一遍http向后台发送数据的解析过程">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://luren.pub/flask处理http请求的数据/">
+
+
+
+
+
+  <title>flask处理http请求的数据 | 吃饭不喝汤</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">吃饭不喝汤</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">饿了就吃饭渴了就喝水</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://luren.pub/flask处理http请求的数据/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="饿了就吃饭">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="吃饭不喝汤">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">flask处理http请求的数据</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-07T11:53:14+08:00">
+                2019-05-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  跟着flask走一遍http向后台发送数据的解析过程
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>一般来说, 现在的python应用服务器遵从wsgi协议, flask的app获取gunicorn的<code>environ, start_response</code>参数, 然后处理, 抓包gunicorn发过来的environ数据如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">'HTTP_ACCEPT'</span>: <span class="string">'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3'</span>,</span><br><span class="line">    <span class="string">'HTTP_ACCEPT_ENCODING'</span>: <span class="string">'gzip, deflate'</span>,</span><br><span class="line">    <span class="string">'HTTP_ACCEPT_LANGUAGE'</span>: <span class="string">'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7'</span>,</span><br><span class="line">    <span class="string">'HTTP_CACHE_CONTROL'</span>: <span class="string">'max-age=0'</span>,</span><br><span class="line">    <span class="string">'HTTP_CONNECTION'</span>: <span class="string">'keep-alive'</span>,</span><br><span class="line">    <span class="string">'HTTP_COOKIE'</span>: <span class="string">'session=.eJxdy0kKgCAUANC7_LUECuaw6iby018JTjRAFN291q0f7wYXA1iQSML0QaLyOhjuhZaj0ooDA9dozVio7GD39SAGlDEmF8tUv5nitVCZh0TnQZ2v-SsNt-3'</span>,</span><br><span class="line">    <span class="string">'HTTP_DNT'</span>: <span class="string">'1'</span>,</span><br><span class="line">    <span class="string">'HTTP_HOST'</span>: <span class="string">'0.0.0.0:3000'</span>,</span><br><span class="line">    <span class="string">'HTTP_UPGRADE_INSECURE_REQUESTS'</span>: <span class="string">'1'</span>,</span><br><span class="line">    <span class="string">'HTTP_USER_AGENT'</span>: <span class="string">'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '</span></span><br><span class="line">                        <span class="string">'(KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'</span>,</span><br><span class="line">    <span class="string">'PATH_INFO'</span>: <span class="string">'/'</span>,</span><br><span class="line">    <span class="string">'QUERY_STRING'</span>: <span class="string">''</span>,</span><br><span class="line">    <span class="string">'RAW_URI'</span>: <span class="string">'/'</span>,</span><br><span class="line">    <span class="string">'REMOTE_ADDR'</span>: <span class="string">'127.0.0.1'</span>,</span><br><span class="line">    <span class="string">'REMOTE_PORT'</span>: <span class="string">'59734'</span>,</span><br><span class="line">    <span class="string">'REQUEST_METHOD'</span>: <span class="string">'GET'</span>,</span><br><span class="line">    <span class="string">'SCRIPT_NAME'</span>: <span class="string">''</span>,</span><br><span class="line">    <span class="string">'SERVER_NAME'</span>: <span class="string">'0.0.0.0'</span>,</span><br><span class="line">    <span class="string">'SERVER_PORT'</span>: <span class="string">'3000'</span>,</span><br><span class="line">    <span class="string">'SERVER_PROTOCOL'</span>: <span class="string">'HTTP/1.1'</span>,</span><br><span class="line">    <span class="string">'SERVER_SOFTWARE'</span>: <span class="string">'gunicorn/19.9.0'</span>,</span><br><span class="line">    <span class="string">'gunicorn.socket'</span>: &lt;socket.socket fd=<span class="number">9</span>, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=<span class="number">0</span>, laddr=(<span class="string">'127.0.0.1'</span>, <span class="number">3000</span>), raddr=(<span class="string">'127.0.0.1'</span>, <span class="number">59734</span>)&gt;,</span><br><span class="line">    <span class="string">'wsgi.errors'</span>: &lt;gunicorn.http.wsgi.WSGIErrorsWrapper object at <span class="number">0x7fa5719707f0</span>&gt;,</span><br><span class="line">    'wsgi.file_wrapper': &lt;class 'gunicorn.http.wsgi.FileWrapper'&gt;,</span><br><span class="line">    <span class="string">'wsgi.input'</span>: &lt;gunicorn.http.body.Body object at <span class="number">0x7fa5719707b8</span>&gt;,</span><br><span class="line">    <span class="string">'wsgi.multiprocess'</span>: <span class="keyword">False</span>,</span><br><span class="line">    <span class="string">'wsgi.multithread'</span>: <span class="keyword">False</span>,</span><br><span class="line">    <span class="string">'wsgi.run_once'</span>: <span class="keyword">False</span>,</span><br><span class="line">    <span class="string">'wsgi.url_scheme'</span>: <span class="string">'http'</span>,</span><br><span class="line">    <span class="string">'wsgi.version'</span>: (<span class="number">1</span>, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在flask中, 想获取前端的数据大概有三种方式, 在<code>Request</code>类中有描述:</p>
+<ul>
+<li>request.args()<ul>
+<li>url中query部分字段</li>
+</ul>
+</li>
+<li>request.form()</li>
+<li>request.data</li>
+<li>request.json()</li>
+</ul>
+<h2 id="request-args"><a href="#request-args" class="headerlink" title="request.args"></a><code>request.args</code></h2><p>这个方法主要获取请求url中的query字段, 在flask的<code>Request.args</code>方法中提取environ的<code>QUERY_STRING</code>字段进行解析, 具体实现位于<code>werkzeug.wrappers.base_request/BaseRequest</code>中.</p>
+<h2 id="request-form"><a href="#request-form" class="headerlink" title="request.form"></a><code>request.form</code></h2><p>这个字段获取form表单的数据, 一般来说, http通过post或者put方法发送form数据, 然后定义<code>Content-Type</code>字段决定如何解析form数据:</p>
+<h3 id="application-x-www-form-urlencoded"><a href="#application-x-www-form-urlencoded" class="headerlink" title="application/x-www-form-urlencoded"></a><code>application/x-www-form-urlencoded</code></h3><p>数据被编码成以<code>&amp;</code>分隔的键值对, 同时以 ‘=’ 分隔键和值. 非字母或数字的字符会被 <code>percent-encoding</code>: 这也就是为什么这种类型不支持二进制数据的原因 (应使用 multipart/form-data 代替).</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: foo.com</span><br><span class="line"><span class="attribute">Content-Type</span>: application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">Content-Length</span>: 13</span><br><span class="line"></span><br><span class="line">say=Hi&amp;to=Mom</span><br></pre></td></tr></table></figure>
+<h3 id="multipart-form-data"><a href="#multipart-form-data" class="headerlink" title="multipart/form-data"></a><code>multipart/form-data</code></h3><p>一般上如果长传文件或者大的数据的话用这种方法, 因为上面的方法会对不安全的字符进行编码,</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">POST /test.html HTTP/1.1 </span><br><span class="line">Host: example.org </span><br><span class="line">Content-Type: multipart/form-data;boundary=<span class="string">"boundary"</span> </span><br><span class="line"></span><br><span class="line">--boundary <span class="comment"># 这个值单词就是上面的value</span></span><br><span class="line">Content-Disposition: form-data; name=<span class="string">"field1"</span> </span><br><span class="line"></span><br><span class="line">value1 </span><br><span class="line">--boundary </span><br><span class="line">Content-Disposition: form-data; name=<span class="string">"field2"</span>; filename=<span class="string">"example.txt"</span> </span><br><span class="line"></span><br><span class="line">value2</span><br></pre></td></tr></table></figure>
+<h3 id="flask解析的实现"><a href="#flask解析的实现" class="headerlink" title="flask解析的实现"></a>flask解析的实现</h3><p>flask对form数据的解析是在<code>werkzeug.formparser.FormDataParser</code>中实现的, 对不同的<code>Content-Type</code>提供不同的解析方法:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">parse_functions = &#123;</span><br><span class="line">    <span class="string">"multipart/form-data"</span>: _parse_multipart,</span><br><span class="line">    <span class="string">"application/x-www-form-urlencoded"</span>: _parse_urlencoded,</span><br><span class="line">    <span class="string">"application/x-url-encoded"</span>: _parse_urlencoded,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="request-json"><a href="#request-json" class="headerlink" title="request.json()"></a><code>request.json()</code></h2><p>现在一般都用json做前后端交互的格式, 看下lfaks的json解析过程, flask的json解析存在于<code>JSONMixin.get_json()</code>这个方法中, 先调用<code>is_json</code>查询mimetype是不是<code>application/.*json</code>, 如果是, 那么获取请求的data然后尝试调用<code>json.loads</code>方法解析数据成json格式, 如果不是, 直接返回<code>None</code>.</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flask/" rel="tag"># flask</a>
+          
+            <a href="/tags/http/" rel="tag"># http</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/tcp的一些感想/" rel="next" title="tcp的一些感想">
+                <i class="fa fa-chevron-left"></i> tcp的一些感想
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/python有趣的函数/" rel="prev" title="python有趣的函数">
+                python有趣的函数 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">饿了就吃饭</p>
+              <p class="site-description motion-element" itemprop="description">妄言妄语当不得真,疯言疯语不足为信</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#request-args"><span class="nav-number">1.</span> <span class="nav-text">request.args</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#request-form"><span class="nav-number">2.</span> <span class="nav-text">request.form</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#application-x-www-form-urlencoded"><span class="nav-number">2.1.</span> <span class="nav-text">application/x-www-form-urlencoded</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#multipart-form-data"><span class="nav-number">2.2.</span> <span class="nav-text">multipart/form-data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flask解析的实现"><span class="nav-number">2.3.</span> <span class="nav-text">flask解析的实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#request-json"><span class="nav-number">3.</span> <span class="nav-text">request.json()</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">饿了就吃饭</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
