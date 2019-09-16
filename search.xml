@@ -303,27 +303,6 @@
     
     
     <entry>
-      <title>tcp的一些感想</title>
-      <link href="/tcp%E7%9A%84%E4%B8%80%E4%BA%9B%E6%84%9F%E6%83%B3/"/>
-      <url>/tcp%E7%9A%84%E4%B8%80%E4%BA%9B%E6%84%9F%E6%83%B3/</url>
-      
-        <content type="html"><![CDATA[<p>在tcp协议中, 我们考虑下面几个问题:</p><ul><li>消息可以发送</li><li>消息能解析出正确的发送数据</li><li>消息确认到达</li><li>尽量的压榨性能</li></ul><p>按照惯例, 先放总结</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol><li><p>ack机制</p><ul><li><p>这个类似的有kafka的消息确认机制, rabbitmq的确认机制.</p></li><li><p>变种的有心跳监测机制</p></li></ul></li><li><p>本地buffer批量发送</p><ul><li><p>kafka本地先buffer然后批量发送</p></li><li><p>mysql设置buffer区域, 先写入buffer然后批量刷盘, 刷盘的触发机制有buffer满或者达到超时时间.</p></li></ul></li><li><p>异常处理</p><ul><li>tcp设置urg=1告诉server这条消息优先级比较高, 先处理. </li></ul></li><li><p>数据校验</p><ul><li>将数据和校验位一起发送, 然后server确认数据是否正确, 类似于https的连接</li></ul></li><li><p>序列号</p><ul><li>用有序数组来确认顺序还是添加序号确认顺序, 这是个问题.</li></ul></li><li><p>随机序列号</p><ul><li>初始给出一个随机序列号防止被黑, 跟https中建立连接的过程有点关系</li></ul></li></ol><h2 id="三次握手和四次挥手"><a href="#三次握手和四次挥手" class="headerlink" title="三次握手和四次挥手"></a>三次握手和四次挥手</h2><h3 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h3><p>在tcp中client和server是平等的, 都接收和发送消息, 所以必须要确认都能收都能接</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">c: 我能发, 你能收么, 你看我打算从x这个初始序列号给你发消息</span><br><span class="line">s: 我能收, 你看我也能发, 你看我知道你下次发的序列号开始是x+1, 我给你发消息从y开始</span><br><span class="line">c: 我也能收, 我知道你打算从y+1开始给我发消息</span><br></pre></td></tr></table></figure><p>感觉这里之所以x+1是为了编码实现的方便, 跟虚拟内存一样.</p><h3 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">c: 我不打算发了, 我发的最后一个是<span class="variable">$u</span>$</span><br><span class="line">s :哦, 我收到了, 给你确认是u+1</span><br><span class="line">s: 我最后给你确认你发的是u+1, 我最后自己发的是v</span><br><span class="line">c: 哦, 我收到你最后发的v+1了, 告辞</span><br></pre></td></tr></table></figure><h2 id="差错控制机制"><a href="#差错控制机制" class="headerlink" title="差错控制机制"></a>差错控制机制</h2><h3 id="分段"><a href="#分段" class="headerlink" title="分段"></a>分段</h3><ul><li><p>由于受到网络最大传输单元的限制, tcp不可能一次就将所有的消息发送完成, 而需要将消息分段发出, tcp发送数据的基本单位是段.</p></li><li><p>tcp每段数据开头都带有一个标示该段数据的32位序号, 这里类似于数组的地址就是数组开头第一个元素的地址一样</p></li></ul><h3 id="确认应答"><a href="#确认应答" class="headerlink" title="确认应答"></a>确认应答</h3><ul><li><p>确认应答采用滑动窗口的方式</p><ul><li><p>发送端的发送窗口大小 = min[拥塞窗口, 接收端公告的接收窗口]</p></li><li><p>client在发送完窗口大小的数据后, 等待接收端的确认消息.</p></li></ul></li><li><p>确认过程</p><ul><li>server收到消息后可以逐个确认也可以批量确认, 然后给出确认序号是最后一个发送序号+1, 也就是告诉client下次接收消息的开始序号</li><li>一般来说, 确认消息会捎带在server发送的数据中, 这样可以提高网络传输的效率.</li><li>ack返回有两个条件, 一个是跟着server的数据一起返回, 另一个是超时, 这个超时时间不能大于client重传定时器的超时时间</li><li>todo<ul><li>这里类似于本地一个buffer, 然后buffer满了就发送, 或者等待超时就发送</li><li>kafka先将消息buffer到本地,然后一起发送,这样可以提高效率.// 需不需要考虑本地消息丢失的问题</li></ul></li></ul></li><li><p>错序确认</p><ul><li>如果因为网络抖动或者什么原因, 4001消息的确认在2001的前面, 那么server会理科向client发送确认应答, ack的value是正确的确认序号+1, 也就是2001. 这样就会产生很多2001的ack, client根据这个ack确认是否需要重发. server会将这些错序的消息buffer到本地, 直到收到正确的</li></ul></li><li><p>消息丢失</p><ul><li>消息丢失的话, 后面的消息会一直重复确认, 逐渐将重传定时器溢出, 然后重发</li></ul></li></ul><p><strong>所以乱序和丢失的区别在于先是乱序的那个序号到达还是client的重传定时器溢出????</strong></p><h3 id="重传机制"><a href="#重传机制" class="headerlink" title="重传机制"></a>重传机制</h3><ul><li>client发送一个tcp报文, 会将这个报文暂存到缓冲区, 并设置一个buffer超时时间, 过了这个时间如果没有收到ack的话就会重传.<ul><li>问题的关键在于如何设置这个超时时间</li></ul></li></ul><ul><li>client收到了server的多个重复的ack, 默认是3个, 那么就会重新发送消息</li></ul><ul><li>重传的话到底发送哪条消息?<ul><li>2的话只发送丢的那条就ok</li><li>1是因为超时或者网络不稳定什么的, 发送丢的那条和后面的全部消息</li></ul></li></ul><h2 id="tcp的拥塞机制"><a href="#tcp的拥塞机制" class="headerlink" title="tcp的拥塞机制"></a>tcp的拥塞机制</h2><p>慢启动</p><p>重传定时器溢出的时候向下调整</p><p>连续接收到多个重复确认应答的时候向下调整</p>]]></content>
-      
-      
-      
-        <tags>
-            
-            <tag> 消息队列 </tag>
-            
-            <tag> tcp协议 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>ps操作的一些记录</title>
       <link href="/ps/"/>
       <url>/ps/</url>
@@ -337,6 +316,27 @@
             <tag> linux </tag>
             
             <tag> 脚本 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>tcp的一些感想</title>
+      <link href="/tcp%E7%9A%84%E4%B8%80%E4%BA%9B%E6%84%9F%E6%83%B3/"/>
+      <url>/tcp%E7%9A%84%E4%B8%80%E4%BA%9B%E6%84%9F%E6%83%B3/</url>
+      
+        <content type="html"><![CDATA[<p>在tcp协议中, 我们考虑下面几个问题:</p><ul><li>消息可以发送</li><li>消息能解析出正确的发送数据</li><li>消息确认到达</li><li>尽量的压榨性能</li></ul><p>按照惯例, 先放总结</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol><li><p>ack机制</p><ul><li><p>这个类似的有kafka的消息确认机制, rabbitmq的确认机制.</p></li><li><p>变种的有心跳监测机制</p></li></ul></li><li><p>本地buffer批量发送</p><ul><li><p>kafka本地先buffer然后批量发送</p></li><li><p>mysql设置buffer区域, 先写入buffer然后批量刷盘, 刷盘的触发机制有buffer满或者达到超时时间.</p></li></ul></li><li><p>异常处理</p><ul><li>tcp设置urg=1告诉server这条消息优先级比较高, 先处理. </li></ul></li><li><p>数据校验</p><ul><li>将数据和校验位一起发送, 然后server确认数据是否正确, 类似于https的连接</li></ul></li><li><p>序列号</p><ul><li>用有序数组来确认顺序还是添加序号确认顺序, 这是个问题.</li></ul></li><li><p>随机序列号</p><ul><li>初始给出一个随机序列号防止被黑, 跟https中建立连接的过程有点关系</li></ul></li></ol><h2 id="三次握手和四次挥手"><a href="#三次握手和四次挥手" class="headerlink" title="三次握手和四次挥手"></a>三次握手和四次挥手</h2><h3 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h3><p>在tcp中client和server是平等的, 都接收和发送消息, 所以必须要确认都能收都能接</p><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">c: 我能发, 你能收么, 你看我打算从x这个初始序列号给你发消息</span><br><span class="line">s: 我能收, 你看我也能发, 你看我知道你下次发的序列号开始是x+1, 我给你发消息从y开始</span><br><span class="line">c: 我也能收, 我知道你打算从y+1开始给我发消息</span><br></pre></td></tr></table></figure><p>感觉这里之所以x+1是为了编码实现的方便, 跟虚拟内存一样.</p><h3 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">c: 我不打算发了, 我发的最后一个是<span class="variable">$u</span>$</span><br><span class="line">s :哦, 我收到了, 给你确认是u+1</span><br><span class="line">s: 我最后给你确认你发的是u+1, 我最后自己发的是v</span><br><span class="line">c: 哦, 我收到你最后发的v+1了, 告辞</span><br></pre></td></tr></table></figure><h2 id="差错控制机制"><a href="#差错控制机制" class="headerlink" title="差错控制机制"></a>差错控制机制</h2><h3 id="分段"><a href="#分段" class="headerlink" title="分段"></a>分段</h3><ul><li><p>由于受到网络最大传输单元的限制, tcp不可能一次就将所有的消息发送完成, 而需要将消息分段发出, tcp发送数据的基本单位是段.</p></li><li><p>tcp每段数据开头都带有一个标示该段数据的32位序号, 这里类似于数组的地址就是数组开头第一个元素的地址一样</p></li></ul><h3 id="确认应答"><a href="#确认应答" class="headerlink" title="确认应答"></a>确认应答</h3><ul><li><p>确认应答采用滑动窗口的方式</p><ul><li><p>发送端的发送窗口大小 = min[拥塞窗口, 接收端公告的接收窗口]</p></li><li><p>client在发送完窗口大小的数据后, 等待接收端的确认消息.</p></li></ul></li><li><p>确认过程</p><ul><li>server收到消息后可以逐个确认也可以批量确认, 然后给出确认序号是最后一个发送序号+1, 也就是告诉client下次接收消息的开始序号</li><li>一般来说, 确认消息会捎带在server发送的数据中, 这样可以提高网络传输的效率.</li><li>ack返回有两个条件, 一个是跟着server的数据一起返回, 另一个是超时, 这个超时时间不能大于client重传定时器的超时时间</li><li>todo<ul><li>这里类似于本地一个buffer, 然后buffer满了就发送, 或者等待超时就发送</li><li>kafka先将消息buffer到本地,然后一起发送,这样可以提高效率.// 需不需要考虑本地消息丢失的问题</li></ul></li></ul></li><li><p>错序确认</p><ul><li>如果因为网络抖动或者什么原因, 4001消息的确认在2001的前面, 那么server会理科向client发送确认应答, ack的value是正确的确认序号+1, 也就是2001. 这样就会产生很多2001的ack, client根据这个ack确认是否需要重发. server会将这些错序的消息buffer到本地, 直到收到正确的</li></ul></li><li><p>消息丢失</p><ul><li>消息丢失的话, 后面的消息会一直重复确认, 逐渐将重传定时器溢出, 然后重发</li></ul></li></ul><p><strong>所以乱序和丢失的区别在于先是乱序的那个序号到达还是client的重传定时器溢出????</strong></p><h3 id="重传机制"><a href="#重传机制" class="headerlink" title="重传机制"></a>重传机制</h3><ul><li>client发送一个tcp报文, 会将这个报文暂存到缓冲区, 并设置一个buffer超时时间, 过了这个时间如果没有收到ack的话就会重传.<ul><li>问题的关键在于如何设置这个超时时间</li></ul></li></ul><ul><li>client收到了server的多个重复的ack, 默认是3个, 那么就会重新发送消息</li></ul><ul><li>重传的话到底发送哪条消息?<ul><li>2的话只发送丢的那条就ok</li><li>1是因为超时或者网络不稳定什么的, 发送丢的那条和后面的全部消息</li></ul></li></ul><h2 id="tcp的拥塞机制"><a href="#tcp的拥塞机制" class="headerlink" title="tcp的拥塞机制"></a>tcp的拥塞机制</h2><p>慢启动</p><p>重传定时器溢出的时候向下调整</p><p>连续接收到多个重复确认应答的时候向下调整</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 消息队列 </tag>
+            
+            <tag> tcp协议 </tag>
             
         </tags>
       
